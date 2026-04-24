@@ -1,6 +1,6 @@
-School Management System - Business Requirements
+## School Management System - Business Requirements
 
-Overview
+### Overview
 
 This README documents business requirements and expected behavior for the simple School Management System. The implementation uses in-memory lists only (no database, no external packages). The project is organized into:
 
@@ -9,7 +9,7 @@ This README documents business requirements and expected behavior for the simple
 - `Services/` — business layer: `StudentService`, `CourseService`, `GradeService`.
 - `Program.cs` — console UI only; business logic must remain in services for testability.
 
-Global domain rules
+### Global domain rules
 
 - Student must have non-empty `FirstName`, `LastName`, and `Email`.
 - Teacher must have non-empty `FirstName`, `LastName`, and `Email`.
@@ -21,7 +21,7 @@ Global domain rules
 - Searching by last name must be case-insensitive.
 - All service methods should throw meaningful exceptions (type and message) for invalid operations.
 
-Repository: `InMemoryRepository`
+### Repository: `InMemoryRepository`
 
 - Purpose: hold in-memory lists for `Students`, `Teachers`, `Courses`, `Enrollments`, `Grades` and provide a `Seed()` method that populates initial data.
 - `Seed()` requirements:
@@ -30,7 +30,7 @@ Repository: `InMemoryRepository`
   - Enrollments and grades in seed data must reference existing student and course IDs.
   - `Seed()` should be idempotent for fresh repository instances (called once on a new `InMemoryRepository` instance).
 
-Services: general requirements
+### Services: general requirements
 
 - Services depend on a repository instance (injected via constructor).
 - All business rules are enforced in the service layer (not in `Program.cs`).
@@ -38,7 +38,7 @@ Services: general requirements
 - Methods must be simple to unit test (avoid static state or random values inside methods).
 - Validation failures or invalid operations must throw `InvalidOperationException` (or another clear exception) with a message describing the problem.
 
-StudentService
+#### StudentService
 
 - Constructor: `StudentService(InMemoryRepository repo)`
   - Stores provided repository reference; does not modify it.
@@ -58,7 +58,7 @@ StudentService
   - Return the `Student` with the given `id`.
   - If not found, throw `InvalidOperationException` with a message like: "Student with id {id} not found".
 
-CourseService
+#### CourseService
 
 - Constructor: `CourseService(InMemoryRepository repo)`
   - Stores provided repository reference.
@@ -83,7 +83,7 @@ CourseService
   - Behavior: Return all courses where an `Enrollment` exists with the given `studentId`.
   - Return an empty collection if no enrollments exist for the student.
 
-GradeService
+#### GradeService
 
 - Constructor: `GradeService(InMemoryRepository repo)`
   - Stores provided repository reference.
@@ -117,14 +117,14 @@ GradeService
   - Calculate the arithmetic mean of all grades assigned in the specified course (i.e., all grades where `Grade.CourseId == courseId`).
   - If the course has no grades, return `0.0`.
 
-Console UI (`Program.cs`) expectations
+### Console UI (`Program.cs`) expectations
 
 - The console program is only responsible for I/O and calling service methods.
 - Input parsing and validation should be done before calling service methods (e.g., ensure IDs and numeric grades parse successfully); however, services must not rely on the UI for validation.
 - The console should print descriptive error messages when service methods throw exceptions.
 - The console should not contain business logic beyond simple validation and formatting.
 
-Error messages and exceptions
+#### Error messages and exceptions
 
 - Use clear and consistent `InvalidOperationException` messages for business-rule failures, such as:
   - "Student not found"
@@ -134,20 +134,20 @@ Error messages and exceptions
   - "Grade value must be between 1.0 and 6.0"
   - "Student with id {id} not found"
 
-Testability notes
+### Testability notes
 
 - Keep services small and focused; each public method should be unit-testable in isolation by constructing an `InMemoryRepository` and injecting it.
 - Seed deterministic data for tests (tests should create repository instances and populate only the data they need).
 - Make sure methods do not depend on static state or on `DateTime.Now` without a way to inject or assert around it. If the service uses current date for `DateAssigned`, tests should only assert presence and not exact timestamp or use an injectable clock in more advanced scenarios.
 
-Examples (expected behavior)
+#### Examples (expected behavior)
 
 - Calling `FindStudentsByLastName("doe")` should return students whose last name includes "doe" regardless of case (e.g. "Doe", "doe", "DOE").
 - Calling `EnrollStudent(1, 1)` when student 1 already enrolled in course 1 must throw a duplicate-enrollment exception.
 - Calling `AssignGrade(1, 1, 5.5)` when student 1 is enrolled in course 1 must add a grade and subsequent `GetAverageGradeForStudent(1)` should reflect the new grade.
 - Calling `GetAverageGradeForCourse(99)` for a non-existent or ungraded course should return `0.0`.
 
-Change policy
+### Change policy
 
 - Business rules should be centralized in the service layer. If a rule must change, update service logic and corresponding unit tests.
 - Avoid introducing silent failures: prefer throwing exceptions with clear messages when preconditions are violated.
